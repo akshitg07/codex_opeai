@@ -11,7 +11,7 @@ LOGGER = logging.getLogger(__name__)
 
 DEFAULT_PORT = int(os.getenv("PORT", "5000"))
 WINDOWS_GPIO_PIN = int(os.getenv("WINDOWS_GPIO_PIN", "17"))
-LINUX_GPIO_PIN = int(os.getenv("LINUX_GPIO_PIN", "27"))
+LINUX_GPIO_PIN = int(os.getenv("LINUX_GPIO_PIN", "18"))
 
 
 def create_app(windows_controller: GPIOController, linux_controller: GPIOController) -> Flask:
