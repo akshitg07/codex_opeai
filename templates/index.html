@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GPIO Server Power Controller</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #111827;
+        color: #f9fafb;
+      }
+      .card {
+        background: #1f2937;
+        width: min(520px, 92vw);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      }
+      h1 {
+        margin-top: 0;
+        font-size: 1.4rem;
+      }
+      h2 {
+        margin: 1rem 0 0.4rem;
+        font-size: 1.05rem;
+      }
+      .host {
+        border: 1px solid #374151;
+        border-radius: 10px;
+        padding: 0.75rem;
+        margin-top: 0.75rem;
+      }
+      .actions {
+        display: grid;
+        gap: 0.8rem;
+        margin-top: 0.8rem;
+      }
+      button {
+        width: 100%;
+        border: 0;
+        border-radius: 8px;
+        padding: 0.85rem 1rem;
+        color: #fff;
+        font-size: 0.98rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .on {
+        background: #16a34a;
+      }
+      .off {
+        background: #dc2626;
+      }
+      .meta {
+        color: #9ca3af;
+        margin: 0.2rem 0 0;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <h1>GPIO Server Power Controller</h1>
+
+      <section class="host">
+        <h2>Windows Host</h2>
+        <p class="meta">GPIO{{ windows_pin }} via BC548 transistor to PWR_SW</p>
+        <div class="actions">
+          <form method="post" action="/on/ui">
+            <button class="on" type="submit">Power ON ({{ short_press }}s pulse)</button>
+          </form>
+          <form method="post" action="/off/ui">
+            <button class="off" type="submit">Power OFF ({{ long_press }}s pulse)</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="host">
+        <h2>Linux Host</h2>
+        <p class="meta">GPIO{{ linux_pin }} via BC548 transistor to PWR_SW</p>
+        <div class="actions">
+          <form method="post" action="/linux/on/ui">
+            <button class="on" type="submit">Power ON ({{ short_press }}s pulse)</button>
+          </form>
+          <form method="post" action="/linux/off/ui">
+            <button class="off" type="submit">Power OFF ({{ long_press }}s pulse)</button>
+          </form>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
