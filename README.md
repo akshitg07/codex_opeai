@@ -4,9 +4,11 @@ A lightweight Flask app for Raspberry Pi Zero 2 W that triggers server power swi
 
 ## Features
 
-- `POST /on`: 0.5s short pulse (power on)
-- `POST /off`: 5s long pulse (force power off)
-- Web UI at `/`
+- `POST /on`: Windows host short pulse (0.5s)
+- `POST /off`: Windows host long pulse (5s)
+- `POST /linux/on`: Linux host short pulse (0.5s)
+- `POST /linux/off`: Linux host long pulse (5s)
+- Web UI at `/` with separate Windows/Linux host controls
 - Serialized GPIO access to prevent overlapping pulses
 - GPIO forced LOW after each action and during cleanup
 
@@ -55,4 +57,15 @@ sudo systemctl status gpio-server-power-controller.service
 sudo journalctl -u gpio-server-power-controller.service -f
 ```
 
-> If your deployment path or user differs, edit `WorkingDirectory`, `ExecStart`, `User`, and `Group` in the unit file.
+> If your deployment path, user, or GPIO pins differ, edit `WorkingDirectory`, `ExecStart`, `User`, `Group`, `WINDOWS_GPIO_PIN`, and `LINUX_GPIO_PIN` in the unit file.
+
+
+### Optional GPIO pin overrides
+
+By default the app uses GPIO17 for Windows host and GPIO27 for Linux host. Override with:
+
+```bash
+export WINDOWS_GPIO_PIN=17
+export LINUX_GPIO_PIN=27
+sudo python3 app.py
+```

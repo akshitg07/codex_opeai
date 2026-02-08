@@ -10,37 +10,65 @@ logging.basicConfig(level=logging.INFO)
 LOGGER = logging.getLogger(__name__)
 
 DEFAULT_PORT = int(os.getenv("PORT", "5000"))
+WINDOWS_GPIO_PIN = int(os.getenv("WINDOWS_GPIO_PIN", "17"))
+LINUX_GPIO_PIN = int(os.getenv("LINUX_GPIO_PIN", "27"))
 
 
-def create_app(controller: GPIOController) -> Flask:
+def create_app(windows_controller: GPIOController, linux_controller: GPIOController) -> Flask:
     app = Flask(__name__)
 
     @app.get("/")
     def index():
-        return render_template("index.html")
+        return render_template(
+            "index.html",
+            windows_pin=windows_controller.pin,
+            linux_pin=linux_controller.pin,
+            short_press=windows_controller.short_press_seconds,
+            long_press=windows_controller.long_press_seconds,
+        )
 
     @app.post("/on")
-    def power_on():
-        controller.power_on()
-        return jsonify({"status": "ok", "action": "power_on", "pulse_seconds": controller.short_press_seconds})
+    def windows_power_on():
+        windows_controller.power_on()
+        return jsonify({"status": "ok", "host": "windows", "action": "power_on", "pulse_seconds": windows_controller.short_press_seconds})
 
     @app.post("/off")
-    def power_off():
-        controller.power_off()
-        return jsonify({"status": "ok", "action": "power_off", "pulse_seconds": controller.long_press_seconds})
+    def windows_power_off():
+        windows_controller.power_off()
+        return jsonify({"status": "ok", "host": "windows", "action": "power_off", "pulse_seconds": windows_controller.long_press_seconds})
+
+    @app.post("/linux/on")
+    def linux_power_on():
+        linux_controller.power_on()
+        return jsonify({"status": "ok", "host": "linux", "action": "power_on", "pulse_seconds": linux_controller.short_press_seconds})
+
+    @app.post("/linux/off")
+    def linux_power_off():
+        linux_controller.power_off()
+        return jsonify({"status": "ok", "host": "linux", "action": "power_off", "pulse_seconds": linux_controller.long_press_seconds})
 
     @app.get("/health")
     def health():
         return jsonify({"status": "ok"})
 
     @app.post("/on/ui")
-    def on_ui():
-        controller.power_on()
+    def windows_on_ui():
+        windows_controller.power_on()
         return redirect(url_for("index"))
 
     @app.post("/off/ui")
-    def off_ui():
-        controller.power_off()
+    def windows_off_ui():
+        windows_controller.power_off()
+        return redirect(url_for("index"))
+
+    @app.post("/linux/on/ui")
+    def linux_on_ui():
+        linux_controller.power_on()
+        return redirect(url_for("index"))
+
+    @app.post("/linux/off/ui")
+    def linux_off_ui():
+        linux_controller.power_off()
         return redirect(url_for("index"))
 
     return app
@@ -56,12 +84,17 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    controller = GPIOController(pin=17, short_press_seconds=0.5, long_press_seconds=5.0)
-    controller.initialize()
-    atexit.register(controller.cleanup)
+    windows_controller = GPIOController(pin=WINDOWS_GPIO_PIN, short_press_seconds=0.5, long_press_seconds=5.0)
+    linux_controller = GPIOController(pin=LINUX_GPIO_PIN, short_press_seconds=0.5, long_press_seconds=5.0)
 
-    app = create_app(controller)
+    windows_controller.initialize()
+    linux_controller.initialize()
+    atexit.register(windows_controller.cleanup)
+    atexit.register(linux_controller.cleanup)
+
+    app = create_app(windows_controller, linux_controller)
     LOGGER.info("Starting GPIO Server Power Controller on %s:%s", args.host, args.port)
+    LOGGER.info("Windows host pin: GPIO%s, Linux host pin: GPIO%s", WINDOWS_GPIO_PIN, LINUX_GPIO_PIN)
     app.run(host=args.host, port=args.port, debug=args.debug)
 
 

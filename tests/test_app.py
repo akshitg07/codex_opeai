@@ -32,7 +32,8 @@ class AppRouteTests(unittest.TestCase):
         short_press_seconds = 0.5
         long_press_seconds = 5.0
 
-        def __init__(self):
+        def __init__(self, pin):
+            self.pin = pin
             self.on_calls = 0
             self.off_calls = 0
 
@@ -49,8 +50,9 @@ class AppRouteTests(unittest.TestCase):
         module = importlib.import_module("app")
         module = importlib.reload(module)
 
-        self.controller = self.StubController()
-        self.client = module.create_app(self.controller).test_client()
+        self.windows_controller = self.StubController(pin=17)
+        self.linux_controller = self.StubController(pin=27)
+        self.client = module.create_app(self.windows_controller, self.linux_controller).test_client()
 
     def tearDown(self):
         sys.modules.pop("RPi", None)
@@ -59,17 +61,28 @@ class AppRouteTests(unittest.TestCase):
     def test_root_page(self):
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"GPIO Server Power Controller", response.data)
+        self.assertIn(b"Windows Host", response.data)
+        self.assertIn(b"Linux Host", response.data)
 
-    def test_on_endpoint(self):
+    def test_windows_on_endpoint(self):
         response = self.client.post("/on")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(self.controller.on_calls, 1)
+        self.assertEqual(self.windows_controller.on_calls, 1)
 
-    def test_off_endpoint(self):
+    def test_windows_off_endpoint(self):
         response = self.client.post("/off")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(self.controller.off_calls, 1)
+        self.assertEqual(self.windows_controller.off_calls, 1)
+
+    def test_linux_on_endpoint(self):
+        response = self.client.post("/linux/on")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.linux_controller.on_calls, 1)
+
+    def test_linux_off_endpoint(self):
+        response = self.client.post("/linux/off")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.linux_controller.off_calls, 1)
 
 
 if __name__ == "__main__":
