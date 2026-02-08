@@ -1,0 +1,19 @@
+[Unit]
+Description=GPIO Server Power Controller
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/opt/gpio-server-power-controller
+Environment=PORT=5000
+ExecStart=/usr/bin/python3 /opt/gpio-server-power-controller/app.py --host 0.0.0.0 --port ${PORT}
+Restart=on-failure
+RestartSec=3
+KillSignal=SIGINT
+TimeoutStopSec=15
+
+[Install]
+WantedBy=multi-user.target
